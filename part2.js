@@ -1,5 +1,5 @@
 javascript:(function(){
-const nearbyMapURL="https://alizzzxoxo.github.io/bookmarklet-/nearbyMap.js";
+const nearbyMapURL="https://alizwork.github.io/bookmarklet/nearbyMap.js";
 function loadNearbyMap(cb){
   if(window.nearbyMap) return cb();
   var s=document.createElement('script');
