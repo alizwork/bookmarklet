@@ -48,7 +48,7 @@ javascript:(function(){
           window.togglePart1();
         } else {
           var s = document.createElement('script');
-          s.src = 'https://alizwork./bookmarklet/part1.js';
+          s.src = 'https://alizwork.github.io/bookmarklet/part1.js';
           document.body.appendChild(s);
         }
       }
