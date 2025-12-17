@@ -24,7 +24,7 @@ javascript:(function(){
           window.toggleNewCase();
         } else {
           var s = document.createElement('script');
-          s.src = 'https://alizzzxoxo.github.io/bookmarklet-/new-case.js';
+          s.src = 'https://alizwork.github.io/bookmarklet/new-case.js';
           document.body.appendChild(s);
         }
       }
@@ -36,7 +36,7 @@ javascript:(function(){
           window.toggleBlueRed();
         } else {
           var s = document.createElement('script');
-          s.src = 'https://alizzzxoxo.github.io/bookmarklet-/bluered.js';
+          s.src = 'https://alizwork.github.io/bookmarklet/bluered.js';
           document.body.appendChild(s);
         }
       }
@@ -48,7 +48,7 @@ javascript:(function(){
           window.togglePart1();
         } else {
           var s = document.createElement('script');
-          s.src = 'https://alizzzxoxo.github.io/bookmarklet-/part1.js';
+          s.src = 'https://alizwork./bookmarklet/part1.js';
           document.body.appendChild(s);
         }
       }
@@ -60,7 +60,7 @@ javascript:(function(){
           window.togglePart2();
         } else {
           var s = document.createElement('script');
-          s.src = 'https://alizzzxoxo.github.io/bookmarklet-/part2.js';
+          s.src = 'https://alizwork.github.io/bookmarklet/part2.js';
           document.body.appendChild(s);
         }
       }
@@ -72,7 +72,7 @@ javascript:(function(){
           window.toggleSleekflowAuto();
         } else {
           var s = document.createElement('script');
-          s.src = 'https://alizzzxoxo.github.io/bookmarklet-/sleekflow-auto.js';
+          s.src = 'https://alizwork.github.io/bookmarklet/sleekflow-auto.js';
           document.body.appendChild(s);
         }
       }
