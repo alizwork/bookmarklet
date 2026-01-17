@@ -1,13 +1,13 @@
 javascript:(function(){
 const path = location.pathname;
 
-// ----------- 通用工具 -----------
+// ----------- 通用工具：顯示訊息 -----------
 function showMsg(msg, ms=2000){
     let bar = document.getElementById('tc-status-bar');
     if(!bar){
         bar = document.createElement('div');
         bar.id = 'tc-status-bar';
-        bar.style.cssText = `position:fixed;top:10px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#333;color:#fff;z-index:100000;border-radius:8px;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,0.3);`;
+        bar.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;background:rgba(0,0,0,0.8);color:#fff;z-index:100001;border-radius:50px;font-size:14px;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:all 0.3s;`;
         document.body.appendChild(bar);
     }
     bar.textContent = msg;
@@ -15,70 +15,79 @@ function showMsg(msg, ms=2000){
     setTimeout(()=> bar.style.display='none', ms);
 }
 
-function htmlToPlainText(html) {
-    let temp = document.createElement("div");
-    temp.innerHTML = html;
-    temp.querySelectorAll('.important').forEach(el => {
-        el.prepend("【");
-        el.append("】");
-    });
-    return (temp.innerText || temp.textContent).split('\n').map(l => l.trim()).filter(l => l).join('\n');
-}
-
-// ----------- 邏輯 A：個案列表頁 (Search, Nav, Copy, Jump) -----------
+// ----------- 邏輯 A：個案列表頁 (搜尋、導航、高亮、複製、爬取) -----------
 if(path.includes('cases_approve') && !path.includes('completetutorlist_new')){
-    if(document.getElementById("tc_control_panel")) document.getElementById("tc_control_panel").remove();
+    if(document.getElementById("tc_enhanced_panel")) document.getElementById("tc_enhanced_panel").remove();
 
+    // 建立面板
     const panel = document.createElement("div");
-    panel.id = "tc_control_panel";
-    panel.style = `position:fixed;top:60px;right:20px;z-index:9999;background:#fff;border:2px solid #ff8a00;padding:15px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.2);width:220px;display:flex;flex-direction:column;gap:10px;font-family:sans-serif;`;
+    panel.id = "tc_enhanced_panel";
+    panel.style = `position:fixed;top:80px;right:20px;z-index:9999;background:#ffffff;border:2px solid #ff8a00;padding:15px;border-radius:12px;box-shadow:0 8px 25px rgba(0,0,0,0.2);width:260px;display:flex;flex-direction:column;gap:12px;font-family:system-ui, -apple-system, sans-serif;`;
     
     panel.innerHTML = `
-        <div style="font-weight:bold;color:#ff8a00;font-size:16px;">個案控制台</div>
-        <input id="tc_search" type="text" placeholder="輸入 Case ID 搜尋..." style="padding:8px;border:1px solid #ccc;border-radius:4px;">
-        <div style="display:flex;gap:5px;">
-            <button id="tc_prev" style="flex:1;padding:5px;background:#eee;border:1px solid #ccc;cursor:pointer;">↑ 上一個</button>
-            <button id="tc_next" style="flex:1;padding:5px;background:#eee;border:1px solid #ccc;cursor:pointer;">↓ 下一個</button>
+        <div style="font-weight:bold;color:#ff8a00;font-size:18px;border-bottom:1px solid #eee;padding-bottom:8px;">個案全功能工具箱</div>
+        
+        <div style="display:flex;flex-direction:column;gap:5px;">
+            <label style="font-size:12px;color:#666;">搜尋個案 (輸入 ID 或關鍵字)</label>
+            <input id="tc_search" type="text" placeholder="例如: TC12345" style="padding:10px;border:2px solid #ddd;border-radius:6px;outline:none;font-size:14px;">
         </div>
-        <button id="tc_copy_phone" style="padding:8px;background:#5bc0de;color:white;border:none;border-radius:4px;cursor:pointer;">複製此案電話</button>
-        <button id="tc_go_list" style="padding:10px;background:#ff8a00;color:white;border:none;border-radius:4px;cursor:pointer;font-weight:bold;">爬取並開啟導師列表</button>
-        <div id="tc_info" style="font-size:12px;color:#666;"></div>
+
+        <div style="display:flex;gap:8px;">
+            <button id="tc_prev" style="flex:1;padding:8px;background:#f0f0f0;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-weight:bold;">↑ 上一個</button>
+            <button id="tc_next" style="flex:1;padding:8px;background:#f0f0f0;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-weight:bold;">↓ 下一個</button>
+        </div>
+
+        <button id="tc_copy_phone" style="padding:10px;background:#5bc0de;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;transition:0.2s;">📋 複製當前電話</button>
+        
+        <button id="tc_go_list" style="padding:12px;background:#ff8a00;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:15px;box-shadow:0 4px 0 #d37200;margin-top:5px;">🚀 爬取並開啟導師列表</button>
+        
+        <div id="tc_status_info" style="font-size:12px;color:#888;text-align:center;margin-top:5px;">尚未選中個案</div>
     `;
     document.body.appendChild(panel);
 
+    // 獲取所有包含 TC 的行
     let allRows = Array.from(document.querySelectorAll("tr")).filter(tr => tr.innerText.includes('TC'));
     let currentIndex = -1;
 
+    // 高亮功能
     function highlightRow(index) {
         allRows.forEach(tr => {
             tr.style.backgroundColor = "";
             tr.style.outline = "";
+            tr.style.position = "";
+            tr.style.zIndex = "";
         });
+
         if (index >= 0 && index < allRows.length) {
             const row = allRows[index];
-            row.style.backgroundColor = "#fff3e0";
-            row.style.outline = "2px solid #ff8a00";
+            row.style.backgroundColor = "#fff3e0"; // 淺橘色背景
+            row.style.outline = "3px solid #ff8a00"; // 橘色粗邊框
+            row.style.position = "relative";
+            row.style.zIndex = "10";
             row.scrollIntoView({ behavior: "smooth", block: "center" });
             
+            // 更新狀態資訊
             const caseIdLink = row.querySelector('a[href*="id="]');
-            if(caseIdLink) {
-                document.getElementById("tc_search").value = caseIdLink.innerText.trim();
-                document.getElementById("tc_info").textContent = `選中案號: ${caseIdLink.innerText.trim()}`;
-            }
+            const caseId = caseIdLink ? caseIdLink.innerText.trim() : "未知";
+            document.getElementById("tc_status_info").innerHTML = `當前選中: <b style="color:#ff8a00">${caseId}</b> (${index + 1}/${allRows.length})`;
+            
+            // 同步更新搜尋框內容
+            if(caseId !== "未知") document.getElementById("tc_search").value = caseId;
         }
     }
 
-    // 搜尋功能
+    // 1. 搜尋功能
     document.getElementById("tc_search").oninput = (e) => {
-        const val = e.target.value.trim();
-        const foundIndex = allRows.findIndex(tr => tr.innerText.includes(val));
+        const val = e.target.value.trim().toLowerCase();
+        if(!val) return;
+        const foundIndex = allRows.findIndex(tr => tr.innerText.toLowerCase().includes(val));
         if (foundIndex !== -1) {
             currentIndex = foundIndex;
             highlightRow(currentIndex);
         }
     };
 
-    // 上下移動
+    // 2. 上下移動功能
     document.getElementById("tc_prev").onclick = () => {
         if (currentIndex > 0) {
             currentIndex--;
@@ -92,42 +101,53 @@ if(path.includes('cases_approve') && !path.includes('completetutorlist_new')){
         }
     };
 
-    // 複製電話 (假設電話在包含 8 位數字的單元格中)
+    // 3. 複製電話功能
     document.getElementById("tc_copy_phone").onclick = () => {
         if (currentIndex === -1) return alert("請先選中一個個案");
         const row = allRows[currentIndex];
-        const text = row.innerText;
-        const phoneMatch = text.match(/[569]\d{7}/); // 匹配香港手機號格式
+        // 匹配香港 8 位電話號碼 (5/6/9 開頭)
+        const phoneMatch = row.innerText.match(/[569]\d{7}/);
         if (phoneMatch) {
             navigator.clipboard.writeText(phoneMatch[0]);
-            showMsg("已複製電話: " + phoneMatch[0]);
+            showMsg("✅ 已複製電話: " + phoneMatch[0]);
         } else {
-            alert("找不到電話號碼");
+            alert("在此行中找不到電話號碼");
         }
     };
 
-    // 核心：爬取並跳轉
+    // 4. 爬取並跳轉功能
     document.getElementById("tc_go_list").onclick = async () => {
-        const caseId = document.getElementById("tc_search").value.trim();
-        if(!caseId) return alert("請輸入或選中 Case ID");
+        const caseIdInput = document.getElementById("tc_search").value.trim();
+        if(!caseIdInput) return alert("請輸入或選中一個 Case ID");
 
         showMsg("正在爬取個案內容...");
         try {
-            const resp = await fetch(`/panel/admin/cases_approve/case.php?id=${caseId}`);
+            // 嘗試從當前行獲取 ID，如果沒有則用輸入框的
+            let finalId = caseIdInput;
+            const resp = await fetch(`/panel/admin/cases_approve/case.php?id=${finalId}`);
             const html = await resp.text();
+            
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             const detailEl = doc.getElementById('case_detail');
             
-            if(!detailEl) throw new Error("找不到個案內容");
-            const content = htmlToPlainText(detailEl.innerHTML);
+            if(!detailEl) throw new Error("找不到個案詳細內容，請確認 ID 是否正確");
 
-            // 將資料存入 localStorage，讓新分頁讀取
+            // 處理內容：保留 important 標籤的括號
+            let temp = document.createElement("div");
+            temp.innerHTML = detailEl.innerHTML;
+            temp.querySelectorAll('.important').forEach(el => {
+                el.prepend("【");
+                el.append("】");
+            });
+            const content = (temp.innerText || temp.textContent).split('\n').map(l => l.trim()).filter(l => l).join('\n');
+
+            // 存入 localStorage
             localStorage.setItem('tc_auto_fill_data', content);
-            localStorage.setItem('tc_auto_fill_id', caseId);
+            localStorage.setItem('tc_auto_fill_id', finalId);
 
-            showMsg("資料已就緒，跳轉中...");
-            window.open(`/panel/admin/cases_approve/completetutorlist_new.php?id=${caseId}`, "_blank");
+            showMsg("資料就緒！開啟導師列表...");
+            window.open(`/panel/admin/cases_approve/completetutorlist_new.php?id=${finalId}`, "_blank");
         } catch (err) {
             alert("爬取失敗: " + err.message);
         }
@@ -140,17 +160,16 @@ if(path.includes('completetutorlist_new.php')){
     const pendingId = localStorage.getItem('tc_auto_fill_id');
     const currentId = new URLSearchParams(window.location.search).get('id');
 
-    // 檢查是否是剛才從列表頁跳轉過來的對應 ID
     if(pendingData && pendingId === currentId){
-        showMsg("檢測到待處理資料，正在開啟工具箱...");
+        showMsg("檢測到待處理個案，正在自動填入...", 3000);
         
-        // 1. 模擬 Alt+4 觸發您的 Part 2 UI
+        // 觸發 Alt+4
         const isMac = /Mac/.test(navigator.platform);
         const eventInit = { key: "4", code: "Digit4", keyCode: 52, which: 52, bubbles: true, cancelable: true };
         if (isMac) eventInit.ctrlKey = true; else eventInit.altKey = true;
         window.dispatchEvent(new KeyboardEvent('keydown', eventInit));
 
-        // 2. 等待並填入資料
+        // 循環檢查輸入框是否出現並填入
         let attempts = 0;
         const fillInterval = setInterval(() => {
             const root = document.querySelector('my-funcbox-root');
@@ -159,14 +178,13 @@ if(path.includes('completetutorlist_new.php')){
             if(textarea){
                 textarea.value = pendingData;
                 textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                showMsg("資料已自動填入！", 3000);
+                showMsg("✅ 資料已自動填入！");
                 
-                // 清除暫存，避免重新整理頁面時重複觸發
                 localStorage.removeItem('tc_auto_fill_data');
                 localStorage.removeItem('tc_auto_fill_id');
                 clearInterval(fillInterval);
             }
-            if(attempts++ > 30) clearInterval(fillInterval); // 最多等 6 秒
+            if(attempts++ > 40) clearInterval(fillInterval); 
         }, 200);
     }
 }
