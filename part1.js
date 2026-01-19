@@ -211,7 +211,7 @@ if(path.includes('cases_approve') && !path.includes('completetutorlist')){
     
     panel.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-            <div style="font-weight:800;font-size:16px;color:#1d1d1f;letter-spacing:-0.5px;">個案工具 <span style="color:var(--tc-primary)">V2.9</span></div>
+            <div style="font-weight:800;font-size:16px;color:#1d1d1f;letter-spacing:-0.5px;">個案工具 <span style="color:var(--tc-primary)"></span></div>
             <div class="tc-badge">剩餘 <span id="tc_count_val">0</span></div>
         </div>
         
