@@ -290,7 +290,7 @@ if(path.includes('cases_approve') && !path.includes('completetutorlist')){
         if(firstCell) {
             const marker = document.createElement("span");
             marker.className = "tc-marker";
-            marker.innerText = "ID";
+            marker.innerText = "➤";
             firstCell.prepend(marker);
         }
         row.scrollIntoView({ behavior: "smooth", block: "center" });
